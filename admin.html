@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Admin — Docs Vehículo NFC</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --primary:#1565C0; --accent:#FF6F00; --bg:#F0F2F5; --card:#fff; --text:#212121; --muted:#757575; --success:#2E7D32; --error:#C62828; --radius:12px; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+  .toolbar { background:var(--primary); color:#fff; padding:14px 16px; font-size:17px; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
+  .toolbar-right { font-size:13px; opacity:.8; }
+
+  /* Buscador */
+  .search-bar { background:#fff; padding:12px 16px; display:flex; gap:8px; box-shadow:0 1px 4px rgba(0,0,0,.1); }
+  .search-bar input { flex:1; padding:10px 14px; border:1.5px solid #D0D5DD; border-radius:8px; font-size:15px; outline:none; }
+  .search-bar input:focus { border-color:var(--primary); }
+  .btn-buscar { background:var(--primary); color:#fff; border:none; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  /* Banner */
+  #banner { display:none; background:var(--accent); color:#fff; padding:10px 16px; align-items:center; gap:8px; }
+  #banner.show { display:flex; }
+  #banner span { flex:1; font-size:14px; font-weight:600; }
+  #banner button { background:none; border:1.5px solid #fff; color:#fff; border-radius:20px; padding:4px 14px; cursor:pointer; font-size:13px; }
+
+  /* Tabs */
+  .tabs { background:var(--primary); display:flex; overflow-x:auto; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:1; min-width:80px; padding:11px 8px; text-align:center; color:rgba(255,255,255,.6); font-size:13px; font-weight:500; cursor:pointer; border-bottom:3px solid transparent; transition:.2s; white-space:nowrap; }
+  .tab.active { color:#fff; border-bottom-color:var(--accent); }
+
+  .pages { flex:1; }
+  .page { display:none; padding:16px; overflow-y:auto; max-height:calc(100vh - 260px); }
+  .page.active { display:block; }
+
+  .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 1px 4px rgba(0,0,0,.1); margin-bottom:12px; }
+  .card-title { font-size:15px; font-weight:700; color:var(--primary); margin-bottom:16px; }
+
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; }
+  .field input { width:100%; padding:11px 14px; border:1.5px solid #D0D5DD; border-radius:8px; font-size:15px; color:var(--text); background:#fff; transition:border-color .2s; outline:none; }
+  .field input:focus { border-color:var(--primary); }
+  .row { display:flex; gap:12px; }
+  .row .field { flex:1; }
+
+  /* Foto */
+  .foto-area { margin-top:16px; border-top:1px solid #EEE; padding-top:14px; }
+  .foto-label { font-size:12px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+  .foto-preview { width:100%; max-height:180px; object-fit:cover; border-radius:8px; display:none; margin-bottom:8px; border:1px solid #DDD; cursor:pointer; }
+  .foto-preview.show { display:block; }
+  .btn-foto { display:flex; align-items:center; gap:8px; background:#F0F4FF; border:1.5px dashed var(--primary); color:var(--primary); border-radius:8px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; width:100%; justify-content:center; }
+  input[type="file"] { display:none; }
+
+  /* Bottom */
+  .bottom-bar { background:#fff; padding:10px 12px; display:flex; gap:8px; box-shadow:0 -2px 8px rgba(0,0,0,.08); flex-wrap:wrap; }
+  .btn { height:48px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:.15s; padding:0 16px; }
+  .btn:active { opacity:.85; transform:scale(.98); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-save   { background:var(--success); color:#fff; flex:2; }
+  .btn-nfc    { background:var(--primary); color:#fff; flex:2; }
+  .btn-new    { background:#fff; color:var(--muted); border:1.5px solid #DDD; flex:1; }
+
+  /* Toast */
+  #toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:14px; z-index:200; opacity:0; pointer-events:none; transition:opacity .3s; white-space:nowrap; max-width:90vw; text-align:center; }
+  #toast.show { opacity:1; }
+
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .pulse { animation:pulse 1.2s infinite; }
+
+  .chip-patente { background:#E3F2FD; color:var(--primary); font-weight:700; font-size:13px; padding:4px 10px; border-radius:20px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>⚙️ Admin · Docs NFC</span>
+  <span class="toolbar-right" id="chipPatente"></span>
+</div>
+
+<div class="search-bar">
+  <input id="inputBuscar" type="text" placeholder="Buscar patente..." maxlength="10" style="text-transform:uppercase"
+    onkeydown="if(event.key==='Enter') buscarVehiculo()">
+  <button class="btn-buscar" onclick="buscarVehiculo()">Buscar</button>
+</div>
+
+<div id="banner">
+  <span id="bannerText" class="pulse">Acerca el tag NFC...</span>
+  <button onclick="cancelarNfc()">Cancelar</button>
+</div>
+
+<div class="tabs" id="tabBar"></div>
+<div class="pages" id="pageContainer"></div>
+
+<div class="bottom-bar">
+  <button class="btn btn-new"  onclick="nuevoVehiculo()">Nuevo</button>
+  <button class="btn btn-save" id="btnGuardar" onclick="guardarVehiculo()">💾 Guardar</button>
+  <button class="btn btn-nfc"  id="btnNfc"     onclick="grabarTag()">📡 Grabar Tag</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://tiykdyqpfxnxgvpfvvwm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_IEedxSduro5Go1L6mHWLXg_dNxLGrWP';
+const BUCKET = 'vehicledocs';
+const BASE_URL = 'https://tatavito.github.io/vehicledocs-nfc/';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const FOTO_SECTIONS = ['permiso', 'soap', 'revision', 'gases'];
+const selectedFiles = { permiso:null, soap:null, revision:null, gases:null };
+
+// ─── Tabs ──────────────────────────────────────────────────────────────────
+const TABS = [
+  { id:'vehiculo', label:'Vehículo', icon:'🚗', foto:false, fields:[
+    { id:'patente',  label:'Patente / Placa',       type:'text', upper:true },
+    { id:'marca',    label:'Marca',                  type:'text' },
+    { id:'modelo',   label:'Modelo',                 type:'text' },
+    { row:[{id:'anio',  label:'Año',   type:'number', maxlen:4},
+           {id:'color', label:'Color', type:'text'}]},
+    { id:'vin',      label:'VIN / Chasis', type:'text', upper:true, maxlen:17 }
+  ]},
+  { id:'permiso', label:'Permiso', icon:'📄', foto:true, fields:[
+    { id:'permiso_numero',    label:'Número de permiso',    type:'text' },
+    { id:'permiso_municipio', label:'Municipalidad',        type:'text' },
+    { id:'permiso_venc',      label:'Vencimiento (MM/AAAA)',type:'text', maxlen:7 }
+  ]},
+  { id:'soap', label:'SOAP', icon:'🛡️', foto:true, fields:[
+    { id:'soap_compania', label:'Compañía aseguradora',   type:'text' },
+    { id:'soap_poliza',   label:'Número de póliza',       type:'text' },
+    { id:'soap_venc',     label:'Vencimiento (MM/AAAA)',  type:'text', maxlen:7 }
+  ]},
+  { id:'revision', label:'Rev. Técnica', icon:'🔧', foto:true, fields:[
+    { id:'rt_numero', label:'Número de revisión',      type:'text' },
+    { id:'rt_planta', label:'Planta revisora',         type:'text' },
+    { id:'rt_venc',   label:'Vencimiento (MM/AAAA)',   type:'text', maxlen:7 }
+  ]},
+  { id:'gases', label:'Rev. Gases', icon:'💨', foto:true, fields:[
+    { id:'rg_numero',    label:'Número de revisión',    type:'text' },
+    { id:'rg_planta',    label:'Planta revisora',       type:'text' },
+    { row:[{id:'rg_resultado', label:'Resultado',         type:'text'},
+           {id:'rg_venc',      label:'Vencimiento (MM/AAAA)', type:'text', maxlen:7}]}
+  ]}
+];
+
+const TITLES = { vehiculo:'Datos del Vehículo', permiso:'Permiso de Circulación',
+  soap:'Seguro Obligatorio (SOAP)', revision:'Revisión Técnica', gases:'Revisión de Gases' };
+
+function buildField(f) {
+  if (f.row) return `<div class="row">${f.row.map(buildField).join('')}</div>`;
+  const attrs = [`id="${f.id}"`, `type="${f.type||'text'}"`,
+    f.upper ? 'style="text-transform:uppercase"':'',
+    f.maxlen ? `maxlength="${f.maxlen}"`:''
+  ].filter(Boolean).join(' ');
+  return `<div class="field"><label>${f.label}</label><input ${attrs}></div>`;
+}
+
+const tabBar = document.getElementById('tabBar');
+const pageContainer = document.getElementById('pageContainer');
+
+TABS.forEach((tab, i) => {
+  tabBar.innerHTML += `<div class="tab${i===0?' active':''}" onclick="switchTab(${i})">${tab.icon} ${tab.label}</div>`;
+  const fotoHtml = tab.foto ? `
+    <div class="foto-area">
+      <div class="foto-label">📷 Foto del documento</div>
+      <img class="foto-preview" id="fotoPreview-${tab.id}" onclick="window.open(this.src)">
+      <button class="btn-foto" onclick="document.getElementById('fotoInput-${tab.id}').click()">📷 Tomar foto o seleccionar</button>
+      <input type="file" id="fotoInput-${tab.id}" accept="image/*" capture="environment" onchange="onFoto('${tab.id}',this)">
+    </div>` : '';
+  pageContainer.innerHTML += `
+    <div class="page${i===0?' active':''}" id="page-${i}">
+      <div class="card">
+        <div class="card-title">${tab.icon} ${TITLES[tab.id]}</div>
+        ${tab.fields.map(buildField).join('')}
+        ${fotoHtml}
+      </div>
+    </div>`;
+});
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+  document.querySelectorAll('.page').forEach((p,j) => p.classList.toggle('active', i===j));
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function val(id) { return (document.getElementById(id)?.value||'').trim(); }
+function set(id, v) { const el = document.getElementById(id); if(el) el.value = v||''; }
+
+function getFormData() {
+  const row = {};
+  TABS.forEach(tab => tab.fields.forEach(f => {
+    if (f.row) f.row.forEach(rf => { row[rf.id] = val(rf.id); });
+    else if (f.id) row[f.id] = val(f.id);
+  }));
+  return row;
+}
+
+function setFormData(data) {
+  Object.entries(data).forEach(([k,v]) => set(k, v));
+  const p = data.patente?.toUpperCase() || '';
+  document.getElementById('chipPatente').innerHTML = p ? `<span class="chip-patente">${p}</span>` : '';
+}
+
+function nuevoVehiculo() {
+  document.querySelectorAll('input:not([type=file])').forEach(el => el.value = '');
+  FOTO_SECTIONS.forEach(s => {
+    selectedFiles[s] = null;
+    const p = document.getElementById(`fotoPreview-${s}`);
+    if (p) { p.src=''; p.classList.remove('show'); }
+  });
+  document.getElementById('chipPatente').innerHTML = '';
+  switchTab(0);
+  document.getElementById('patente').focus();
+}
+
+// ─── Buscar vehículo ───────────────────────────────────────────────────────
+async function buscarVehiculo() {
+  const p = document.getElementById('inputBuscar').value.trim().toUpperCase();
+  if (!p) return;
+  document.getElementById('inputBuscar').value = '';
+
+  const { data, error } = await sb.from('vehiculos').select('*').eq('patente', p).single();
+  if (error || !data) { toast(`Patente ${p} no encontrada`); return; }
+
+  setFormData(data);
+
+  // Cargar fotos existentes
+  for (const sec of FOTO_SECTIONS) {
+    for (const ext of ['jpg','jpeg','png','webp','heic']) {
+      const path = `${p}/${sec}.${ext}`;
+      const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
+      const res = await fetch(urlData.publicUrl, { method:'HEAD' });
+      if (res.ok) {
+        const img = document.getElementById(`fotoPreview-${sec}`);
+        if (img) { img.src = urlData.publicUrl + '?t=' + Date.now(); img.classList.add('show'); }
+        break;
+      }
+    }
+  }
+  switchTab(0);
+  toast(`Vehículo ${p} cargado ✓`);
+}
+
+// ─── Foto ──────────────────────────────────────────────────────────────────
+function onFoto(tabId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedFiles[tabId] = file;
+  const img = document.getElementById(`fotoPreview-${tabId}`);
+  img.src = URL.createObjectURL(file);
+  img.classList.add('show');
+}
+
+// ─── Guardar en Supabase ───────────────────────────────────────────────────
+async function guardarVehiculo() {
+  const patente = val('patente').toUpperCase();
+  if (!patente) { toast('Ingresa la patente'); switchTab(0); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Guardando...';
+
+  try {
+    // Subir fotos
+    for (const sec of FOTO_SECTIONS) {
+      const file = selectedFiles[sec];
+      if (!file) continue;
+      const ext = file.name.split('.').pop() || 'jpg';
+      const { error } = await sb.storage.from(BUCKET).upload(`${patente}/${sec}.${ext}`, file, { upsert:true });
+      if (error) toast(`Error foto ${sec}: ${error.message}`);
+    }
+
+    // Guardar datos
+    const row = getFormData();
+    row.patente = patente;
+    row.updated_at = new Date().toISOString();
+    const { error } = await sb.from('vehiculos').upsert(row, { onConflict:'patente' });
+    if (error) throw error;
+
+    document.getElementById('chipPatente').innerHTML = `<span class="chip-patente">${patente}</span>`;
+    toast('Guardado en Supabase ✓');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '💾 Guardar';
+  }
+}
+
+// ─── Grabar Tag NFC ────────────────────────────────────────────────────────
+let nfcController = null;
+
+async function grabarTag() {
+  if (!('NDEFReader' in window)) { toast('Web NFC no disponible — usa Chrome en Android'); return; }
+  const patente = val('patente').toUpperCase();
+  if (!patente) { toast('Ingresa la patente antes de grabar el tag'); switchTab(0); return; }
+
+  const url = `${BASE_URL}?p=${patente}`;
+  nfcController = new AbortController();
+  document.getElementById('banner').classList.add('show');
+  document.getElementById('bannerText').textContent = `Acerca el tag NFC para grabar ${patente}...`;
+
+  try {
+    const writer = new NDEFReader();
+    await writer.write(
+      { records: [{ recordType:'url', data:url }] },
+      { signal:nfcController.signal, overwrite:true }
+    );
+    cancelarNfc();
+    toast(`Tag grabado: ${url}`);
+  } catch(e) {
+    cancelarNfc();
+    if (e.name !== 'AbortError') toast('Error NFC: ' + e.message);
+  }
+}
+
+function cancelarNfc() {
+  if (nfcController) { nfcController.abort(); nfcController = null; }
+  document.getElementById('banner').classList.remove('show');
+}
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
