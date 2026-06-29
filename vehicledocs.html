@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Docs Vehículo NFC</title>
+<style>
+  :root {
+    --primary: #1565C0;
+    --primary-dark: #0D47A1;
+    --accent: #FF6F00;
+    --bg: #F0F2F5;
+    --card: #FFFFFF;
+    --text: #212121;
+    --muted: #757575;
+    --success: #2E7D32;
+    --error: #C62828;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Toolbar */
+  .toolbar { background: var(--primary); color: #fff; padding: 14px 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  .toolbar svg { flex-shrink: 0; }
+
+  /* Banner */
+  #banner { display: none; background: var(--accent); color: #fff; padding: 10px 16px; align-items: center; gap: 8px; }
+  #banner.show { display: flex; }
+  #banner span { flex: 1; font-size: 14px; font-weight: 600; }
+  #banner button { background: none; border: 1.5px solid #fff; color: #fff; border-radius: 20px; padding: 4px 14px; cursor: pointer; font-size: 13px; }
+
+  /* Tabs */
+  .tabs { background: var(--primary); display: flex; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 1; min-width: 80px; padding: 12px 8px; text-align: center; color: rgba(255,255,255,.6); font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: .2s; white-space: nowrap; }
+  .tab.active { color: #fff; border-bottom-color: var(--accent); }
+
+  /* Pages */
+  .pages { flex: 1; overflow: hidden; }
+  .page { display: none; padding: 16px; overflow-y: auto; height: calc(100vh - 220px); }
+  .page.active { display: block; }
+
+  /* Card */
+  .card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 12px; }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* Fields */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+  .field input { width: 100%; padding: 11px 14px; border: 1.5px solid #D0D5DD; border-radius: 8px; font-size: 15px; color: var(--text); background: #fff; transition: border-color .2s; outline: none; }
+  .field input:focus { border-color: var(--primary); }
+  .row { display: flex; gap: 12px; }
+  .row .field { flex: 1; }
+
+  /* Bottom buttons */
+  .bottom-bar { background: #fff; padding: 12px 16px; display: flex; gap: 10px; box-shadow: 0 -2px 8px rgba(0,0,0,.08); }
+  .btn { flex: 1; height: 50px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; transition: .15s; }
+  .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn:active { opacity: .85; transform: scale(.98); }
+
+  /* Modal */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: flex-end; justify-content: center; }
+  .overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; }
+  .modal h2 { font-size: 17px; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+  .modal-body { flex: 1; overflow-y: auto; background: #F5F5F5; border-radius: 8px; padding: 14px; font-family: monospace; font-size: 13px; line-height: 1.7; white-space: pre; margin-bottom: 14px; }
+  .modal-actions { display: flex; flex-direction: column; gap: 8px; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-ghost { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 8px; text-align: center; }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 24px; font-size: 14px; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+
+  /* NFC waiting animation */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .pulse { animation: pulse 1.2s infinite; }
+
+  /* NFC not supported */
+  .nfc-warn { background: #FFF3E0; border: 1px solid #FFB74D; border-radius: 8px; padding: 12px; font-size: 13px; color: #E65100; margin: 12px 16px 0; display: none; }
+  .nfc-warn.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>
+  Docs Vehículo NFC
+</div>
+
+<div id="banner">
+  <span id="bannerText" class="pulse">Acerca el tag NFC...</span>
+  <button onclick="cancelar()">Cancelar</button>
+</div>
+
+<div class="nfc-warn" id="nfcWarn">
+  ⚠️ Web NFC solo funciona en <strong>Chrome para Android</strong>. En este navegador/dispositivo la escritura en NFC no estará disponible.
+</div>
+
+<div class="tabs" id="tabBar"></div>
+
+<div class="pages" id="pageContainer"></div>
+
+<div class="bottom-bar">
+  <button class="btn btn-outline" onclick="iniciarLectura()">LEER TAG</button>
+  <button class="btn btn-primary" onclick="iniciarEscritura()">ESCRIBIR TAG</button>
+</div>
+
+<!-- Modal lectura -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>📋 Datos del tag NFC</h2>
+    <div class="modal-body" id="modalContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-success" onclick="cargarEnFormulario()">CARGAR EN FORMULARIO</button>
+      <button class="btn-ghost" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── Definición de tabs y campos ────────────────────────────────────────────
+const TABS = [
+  {
+    id: 'vehiculo', label: 'Vehículo', icon: '🚗',
+    fields: [
+      { id: 'patente',  label: 'Patente / Placa',       type: 'text',   upper: true },
+      { id: 'marca',    label: 'Marca',                  type: 'text'  },
+      { id: 'modelo',   label: 'Modelo',                 type: 'text'  },
+      { row: [
+        { id: 'anio',   label: 'Año',    type: 'number', maxlen: 4 },
+        { id: 'color',  label: 'Color',  type: 'text'  }
+      ]},
+      { id: 'vin',      label: 'VIN / Número de chasis', type: 'text',   upper: true, maxlen: 17 }
+    ]
+  },
+  {
+    id: 'permiso', label: 'Permiso', icon: '📄',
+    fields: [
+      { id: 'pNumero',    label: 'Número de permiso',   type: 'text' },
+      { id: 'pMunicipio', label: 'Municipalidad',       type: 'text' },
+      { id: 'pVenc',      label: 'Vencimiento (MM/AAAA)', type: 'text', maxlen: 7 }
+    ]
+  },
+  {
+    id: 'soap', label: 'SOAP', icon: '🛡️',
+    fields: [
+      { id: 'sCompania', label: 'Compañía aseguradora', type: 'text' },
+      { id: 'sPoliza',   label: 'Número de póliza',     type: 'text' },
+      { id: 'sVenc',     label: 'Vencimiento (MM/AAAA)', type: 'text', maxlen: 7 }
+    ]
+  },
+  {
+    id: 'revision', label: 'Rev. Técnica', icon: '🔧',
+    fields: [
+      { id: 'rtNumero', label: 'Número de revisión', type: 'text' },
+      { id: 'rtPlanta', label: 'Planta revisora',    type: 'text' },
+      { id: 'rtVenc',   label: 'Vencimiento (MM/AAAA)', type: 'text', maxlen: 7 }
+    ]
+  }
+];
+
+// ─── Renderizado de UI ───────────────────────────────────────────────────────
+function buildField(f) {
+  if (f.row) {
+    return `<div class="row">${f.row.map(buildField).join('')}</div>`;
+  }
+  const attrs = [
+    `id="${f.id}"`,
+    `type="${f.type || 'text'}"`,
+    f.upper ? 'style="text-transform:uppercase"' : '',
+    f.maxlen ? `maxlength="${f.maxlen}"` : ''
+  ].filter(Boolean).join(' ');
+  return `<div class="field"><label>${f.label}</label><input ${attrs}></div>`;
+}
+
+const tabBar = document.getElementById('tabBar');
+const pageContainer = document.getElementById('pageContainer');
+
+TABS.forEach((tab, i) => {
+  tabBar.innerHTML += `<div class="tab${i===0?' active':''}" onclick="switchTab(${i})">${tab.icon} ${tab.label}</div>`;
+  const fieldsHtml = tab.fields.map(buildField).join('');
+  pageContainer.innerHTML += `
+    <div class="page${i===0?' active':''}" id="page-${i}">
+      <div class="card">
+        <div class="card-title">${tab.icon} ${tab.label === 'Vehículo' ? 'Datos del Vehículo' : tab.label === 'Permiso' ? 'Permiso de Circulación' : tab.label === 'SOAP' ? 'Seguro Obligatorio (SOAP)' : 'Revisión Técnica'}</div>
+        ${fieldsHtml}
+      </div>
+    </div>`;
+});
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', i === j));
+  document.querySelectorAll('.page').forEach((p, j) => p.classList.toggle('active', i === j));
+}
+
+// ─── NFC check ──────────────────────────────────────────────────────────────
+const nfcSupported = 'NDEFReader' in window;
+if (!nfcSupported) document.getElementById('nfcWarn').classList.add('show');
+
+// ─── Serialización ──────────────────────────────────────────────────────────
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+function set(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+
+function toJson() {
+  return JSON.stringify({
+    v:  { p: val('patente'), m: val('marca'), mo: val('modelo'), a: val('anio'), c: val('color'), vin: val('vin') },
+    pc: { n: val('pNumero'), mu: val('pMunicipio'), v: val('pVenc') },
+    s:  { c: val('sCompania'), p: val('sPoliza'), v: val('sVenc') },
+    rt: { n: val('rtNumero'), pl: val('rtPlanta'), v: val('rtVenc') }
+  });
+}
+
+function fromJson(json) {
+  const d = JSON.parse(json);
+  const v = d.v || {}, pc = d.pc || {}, s = d.s || {}, rt = d.rt || {};
+  return { patente: v.p, marca: v.m, modelo: v.mo, anio: v.a, color: v.c, vin: v.vin,
+           pNumero: pc.n, pMunicipio: pc.mu, pVenc: pc.v,
+           sCompania: s.c, sPoliza: s.p, sVenc: s.v,
+           rtNumero: rt.n, rtPlanta: rt.pl, rtVenc: rt.v };
+}
+
+function toReadable(d) {
+  const line = (label, val) => `${label.padEnd(12)}: ${val || '—'}`;
+  return [
+    '═══ VEHÍCULO ══════════════════',
+    line('Patente',   d.patente),
+    line('Marca',     d.marca),
+    line('Modelo',    d.modelo),
+    line('Año',       d.anio),
+    line('Color',     d.color),
+    line('VIN',       d.vin),
+    '',
+    '═══ PERMISO DE CIRCULACIÓN ════',
+    line('Número',    d.pNumero),
+    line('Municipio', d.pMunicipio),
+    line('Vence',     d.pVenc),
+    '',
+    '═══ SOAP ══════════════════════',
+    line('Compañía',  d.sCompania),
+    line('Póliza',    d.sPoliza),
+    line('Vence',     d.sVenc),
+    '',
+    '═══ REVISIÓN TÉCNICA ══════════',
+    line('Número',    d.rtNumero),
+    line('Planta',    d.rtPlanta),
+    line('Vence',     d.rtVenc),
+  ].join('\n');
+}
+
+// ─── Estado NFC ─────────────────────────────────────────────────────────────
+let nfcController = null;
+let lastReadData = null;
+
+function showBanner(msg) {
+  document.getElementById('bannerText').textContent = msg;
+  document.getElementById('banner').classList.add('show');
+}
+
+function hideBanner() {
+  document.getElementById('banner').classList.remove('show');
+}
+
+function cancelar() {
+  if (nfcController) { nfcController.abort(); nfcController = null; }
+  hideBanner();
+}
+
+// ─── Escritura ───────────────────────────────────────────────────────────────
+async function iniciarEscritura() {
+  if (!nfcSupported) { toast('Web NFC no disponible en este navegador'); return; }
+  cancelar();
+  showBanner('Acerca el tag NFC para ESCRIBIR...');
+  nfcController = new AbortController();
+  try {
+    const writer = new NDEFReader();
+    const json = toJson();
+    await writer.write(
+      { records: [{ recordType: 'mime', mediaType: 'application/vnd.rvc.vehicledocs', data: new TextEncoder().encode(json) }] },
+      { signal: nfcController.signal, overwrite: true }
+    );
+    hideBanner();
+    toast('Tag escrito correctamente ✓');
+  } catch (e) {
+    hideBanner();
+    if (e.name !== 'AbortError') toast('Error al escribir: ' + e.message);
+  }
+}
+
+// ─── Lectura ─────────────────────────────────────────────────────────────────
+async function iniciarLectura() {
+  if (!nfcSupported) { toast('Web NFC no disponible en este navegador'); return; }
+  cancelar();
+  showBanner('Acerca el tag NFC para LEER...');
+  nfcController = new AbortController();
+  try {
+    const reader = new NDEFReader();
+    await reader.scan({ signal: nfcController.signal });
+    reader.addEventListener('reading', ({ message }) => {
+      const record = message.records.find(r => r.recordType === 'mime' || r.recordType === 'text' || r.mediaType === 'application/vnd.rvc.vehicledocs');
+      if (!record) { toast('El tag no tiene datos de vehículo'); return; }
+      const text = new TextDecoder().decode(record.data);
+      try {
+        lastReadData = fromJson(text);
+        hideBanner();
+        cancelar();
+        document.getElementById('modalContent').textContent = toReadable(lastReadData);
+        document.getElementById('overlay').classList.add('show');
+      } catch {
+        toast('No se pudo leer: formato incorrecto');
+      }
+    });
+    reader.addEventListener('readingerror', () => toast('Error al leer el tag'));
+  } catch (e) {
+    hideBanner();
+    if (e.name !== 'AbortError') toast('Error: ' + e.message);
+  }
+}
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function cargarEnFormulario() {
+  if (!lastReadData) return;
+  Object.entries(lastReadData).forEach(([k, v]) => set(k, v || ''));
+  cerrarModal();
+  switchTab(0);
+  toast('Datos cargados en el formulario ✓');
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Cerrar modal al tocar fuera
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) cerrarModal();
+});
+</script>
+</body>
+</html>
