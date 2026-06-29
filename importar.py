@@ -22,7 +22,10 @@ Instalar dependencias:
 
 import sys
 import os
+import datetime
 from pathlib import Path
+
+DATE_COLS = {'permiso_venc', 'soap_venc', 'rt_venc', 'rg_venc'}
 
 # Forzar UTF-8 en la terminal de Windows
 if hasattr(sys.stdout, 'reconfigure'):
@@ -152,7 +155,12 @@ def importar(excel_path: str):
         for col in COLUMNAS[1:]:
             if col in col_idx:
                 v = fila[col_idx[col]]
-                row[col] = str(v).strip() if v is not None else ''
+                if v is None:
+                    row[col] = ''
+                elif col in DATE_COLS and isinstance(v, (datetime.datetime, datetime.date)):
+                    row[col] = v.strftime('%m/%Y')
+                else:
+                    row[col] = str(v).strip()
 
         # Upsert datos
         res = sb.table('vehiculos').upsert(row, on_conflict='patente').execute()
