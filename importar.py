@@ -24,6 +24,10 @@ import sys
 import os
 from pathlib import Path
 
+# Forzar UTF-8 en la terminal de Windows
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 SUPABASE_URL = 'https://tiykdyqpfxnxgvpfvvwm.supabase.co'
 SUPABASE_KEY = 'sb_publishable_IEedxSduro5Go1L6mHWLXg_dNxLGrWP'
 BUCKET = 'vehicledocs'
@@ -73,9 +77,9 @@ def crear_template():
 
     nombre = 'plantilla_vehiculos.xlsx'
     wb.save(nombre)
-    print(f'✓ Plantilla creada: {nombre}')
+    print(f'[OK] Plantilla creada: {nombre}')
     print(f'  Columnas: {", ".join(COLUMNAS)}')
-    print(f'\nColoca las imágenes en:')
+    print(f'\nColoca las imagenes en:')
     print(f'  imagenes/AB1234/permiso.jpg')
     print(f'  imagenes/AB1234/soap.jpg')
     print(f'  imagenes/AB1234/revision.jpg')
@@ -153,7 +157,7 @@ def importar(excel_path: str):
         # Upsert datos
         res = sb.table('vehiculos').upsert(row, on_conflict='patente').execute()
         if hasattr(res, 'error') and res.error:
-            print(f'✗ Error datos: {res.error}')
+            print(f'[ERROR] datos: {res.error}')
             errores += 1
             continue
 
@@ -174,9 +178,9 @@ def importar(excel_path: str):
                         {'content-type': mime, 'upsert': 'true'})
                     fotos_ok.append(sec)
                 except Exception as e:
-                    print(f'\n  ✗ Error foto {sec}: {e}', end='')
+                    print(f'\n  [ERROR] foto {sec}: {e}', end='')
 
-        estado = f'✓ datos'
+        estado = f'[OK] datos'
         if fotos_ok:
             estado += f' + fotos: {", ".join(fotos_ok)}'
         print(estado)
