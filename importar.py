@@ -29,7 +29,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 SUPABASE_URL = 'https://tiykdyqpfxnxgvpfvvwm.supabase.co'
-SUPABASE_KEY = 'sb_publishable_IEedxSduro5Go1L6mHWLXg_dNxLGrWP'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeWtkeXFwZnhueGd2cGZ2dndtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjY5MjI0OCwiZXhwIjoyMDk4MjY4MjQ4fQ.KwaJ77Ed7HLf2csiHNnoAAaqOYw-FYVgeKolsGQatDY'
 BUCKET = 'vehicledocs'
 
 COLUMNAS = [
@@ -40,7 +40,7 @@ COLUMNAS = [
     'rg_numero', 'rg_planta', 'rg_resultado', 'rg_venc',
 ]
 
-SECCIONES_FOTO = ['permiso', 'soap', 'revision', 'gases']
+SECCIONES_FOTO = ['permiso', 'soap', 'rt', 'rg']
 EXTENSIONES    = ['.jpg', '.jpeg', '.png', '.webp', '.heic']
 
 

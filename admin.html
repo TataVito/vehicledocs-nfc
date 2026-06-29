@@ -6,30 +6,30 @@
 <title>Admin — Docs Vehículo NFC</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --primary:#1565C0; --accent:#FF6F00; --bg:#F0F2F5; --card:#fff; --text:#212121; --muted:#757575; --success:#2E7D32; --error:#C62828; --radius:12px; }
+  :root { --primary:#CC2028; --primary-dark:#A51820; --accent:#E65100; --bg:#F5F5F5; --card:#fff; --text:#212121; --muted:#757575; --success:#2E7D32; --error:#C62828; --radius:12px; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
 
-  .toolbar { background:var(--primary); color:#fff; padding:14px 16px; font-size:17px; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
-  .toolbar-right { font-size:13px; opacity:.8; }
+  .toolbar { background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .toolbar-left { display:flex; align-items:center; gap:12px; }
+  .toolbar-logo { height:36px; filter:drop-shadow(0 1px 3px rgba(0,0,0,.3)); }
+  .toolbar-title { font-size:15px; font-weight:600; opacity:.9; }
+  .toolbar-right { font-size:13px; opacity:.85; }
 
-  /* Buscador */
   .search-bar { background:#fff; padding:12px 16px; display:flex; gap:8px; box-shadow:0 1px 4px rgba(0,0,0,.1); }
   .search-bar input { flex:1; padding:10px 14px; border:1.5px solid #D0D5DD; border-radius:8px; font-size:15px; outline:none; }
   .search-bar input:focus { border-color:var(--primary); }
   .btn-buscar { background:var(--primary); color:#fff; border:none; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer; }
 
-  /* Banner */
   #banner { display:none; background:var(--accent); color:#fff; padding:10px 16px; align-items:center; gap:8px; }
   #banner.show { display:flex; }
   #banner span { flex:1; font-size:14px; font-weight:600; }
   #banner button { background:none; border:1.5px solid #fff; color:#fff; border-radius:20px; padding:4px 14px; cursor:pointer; font-size:13px; }
 
-  /* Tabs */
-  .tabs { background:var(--primary); display:flex; overflow-x:auto; scrollbar-width:none; }
+  .tabs { background:var(--primary-dark); display:flex; overflow-x:auto; scrollbar-width:none; }
   .tabs::-webkit-scrollbar { display:none; }
-  .tab { flex:1; min-width:80px; padding:11px 8px; text-align:center; color:rgba(255,255,255,.6); font-size:13px; font-weight:500; cursor:pointer; border-bottom:3px solid transparent; transition:.2s; white-space:nowrap; }
-  .tab.active { color:#fff; border-bottom-color:var(--accent); }
+  .tab { flex:1; min-width:80px; padding:11px 8px; text-align:center; color:rgba(255,255,255,.55); font-size:13px; font-weight:500; cursor:pointer; border-bottom:3px solid transparent; transition:.2s; white-space:nowrap; }
+  .tab.active { color:#fff; border-bottom-color:#fff; }
 
   .pages { flex:1; }
   .page { display:none; padding:16px; overflow-y:auto; max-height:calc(100vh - 260px); }
@@ -45,24 +45,21 @@
   .row { display:flex; gap:12px; }
   .row .field { flex:1; }
 
-  /* Foto */
   .foto-area { margin-top:16px; border-top:1px solid #EEE; padding-top:14px; }
   .foto-label { font-size:12px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
   .foto-preview { width:100%; max-height:180px; object-fit:cover; border-radius:8px; display:none; margin-bottom:8px; border:1px solid #DDD; cursor:pointer; }
   .foto-preview.show { display:block; }
-  .btn-foto { display:flex; align-items:center; gap:8px; background:#F0F4FF; border:1.5px dashed var(--primary); color:var(--primary); border-radius:8px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; width:100%; justify-content:center; }
+  .btn-foto { display:flex; align-items:center; gap:8px; background:#FFF0F0; border:1.5px dashed var(--primary); color:var(--primary); border-radius:8px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; width:100%; justify-content:center; }
   input[type="file"] { display:none; }
 
-  /* Bottom */
   .bottom-bar { background:#fff; padding:10px 12px; display:flex; gap:8px; box-shadow:0 -2px 8px rgba(0,0,0,.08); flex-wrap:wrap; }
   .btn { height:48px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:.15s; padding:0 16px; }
   .btn:active { opacity:.85; transform:scale(.98); }
   .btn:disabled { opacity:.5; cursor:not-allowed; }
-  .btn-save   { background:var(--success); color:#fff; flex:2; }
-  .btn-nfc    { background:var(--primary); color:#fff; flex:2; }
-  .btn-new    { background:#fff; color:var(--muted); border:1.5px solid #DDD; flex:1; }
+  .btn-save { background:var(--success); color:#fff; flex:2; }
+  .btn-nfc  { background:var(--primary); color:#fff; flex:2; }
+  .btn-new  { background:#fff; color:var(--muted); border:1.5px solid #DDD; flex:1; }
 
-  /* Toast */
   #toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:14px; z-index:200; opacity:0; pointer-events:none; transition:opacity .3s; white-space:nowrap; max-width:90vw; text-align:center; }
   #toast.show { opacity:1; }
 
@@ -71,13 +68,16 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
   .pulse { animation:pulse 1.2s infinite; }
 
-  .chip-patente { background:#E3F2FD; color:var(--primary); font-weight:700; font-size:13px; padding:4px 10px; border-radius:20px; }
+  .chip-patente { background:rgba(255,255,255,.2); color:#fff; font-weight:700; font-size:13px; padding:4px 10px; border-radius:20px; border:1px solid rgba(255,255,255,.4); }
 </style>
 </head>
 <body>
 
 <div class="toolbar">
-  <span>⚙️ Admin · Docs NFC</span>
+  <div class="toolbar-left">
+    <img class="toolbar-logo" src="rvc.jpg" alt="RVC">
+    <span class="toolbar-title">Docs NFC · Admin</span>
+  </div>
   <span class="toolbar-right" id="chipPatente"></span>
 </div>
 
@@ -110,10 +110,9 @@ const BUCKET = 'vehicledocs';
 const BASE_URL = 'https://tatavito.github.io/vehicledocs-nfc/';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const FOTO_SECTIONS = ['permiso', 'soap', 'revision', 'gases'];
-const selectedFiles = { permiso:null, soap:null, revision:null, gases:null };
+const FOTO_SECTIONS = ['permiso', 'soap', 'rt', 'rg'];
+const selectedFiles = { permiso:null, soap:null, rt:null, rg:null };
 
-// ─── Tabs ──────────────────────────────────────────────────────────────────
 const TABS = [
   { id:'vehiculo', label:'Vehículo', icon:'🚗', foto:false, fields:[
     { id:'patente',  label:'Patente / Placa',       type:'text', upper:true },
@@ -133,12 +132,12 @@ const TABS = [
     { id:'soap_poliza',   label:'Número de póliza',       type:'text' },
     { id:'soap_venc',     label:'Vencimiento (MM/AAAA)',  type:'text', maxlen:7 }
   ]},
-  { id:'revision', label:'Rev. Técnica', icon:'🔧', foto:true, fields:[
+  { id:'rt', label:'Rev. Técnica', icon:'🔧', foto:true, fields:[
     { id:'rt_numero', label:'Número de revisión',      type:'text' },
     { id:'rt_planta', label:'Planta revisora',         type:'text' },
     { id:'rt_venc',   label:'Vencimiento (MM/AAAA)',   type:'text', maxlen:7 }
   ]},
-  { id:'gases', label:'Rev. Gases', icon:'💨', foto:true, fields:[
+  { id:'rg', label:'Rev. Gases', icon:'💨', foto:true, fields:[
     { id:'rg_numero',    label:'Número de revisión',    type:'text' },
     { id:'rg_planta',    label:'Planta revisora',       type:'text' },
     { row:[{id:'rg_resultado', label:'Resultado',         type:'text'},
@@ -147,7 +146,7 @@ const TABS = [
 ];
 
 const TITLES = { vehiculo:'Datos del Vehículo', permiso:'Permiso de Circulación',
-  soap:'Seguro Obligatorio (SOAP)', revision:'Revisión Técnica', gases:'Revisión de Gases' };
+  soap:'Seguro Obligatorio (SOAP)', rt:'Revisión Técnica', rg:'Revisión de Gases' };
 
 function buildField(f) {
   if (f.row) return `<div class="row">${f.row.map(buildField).join('')}</div>`;
@@ -185,7 +184,6 @@ function switchTab(i) {
   document.querySelectorAll('.page').forEach((p,j) => p.classList.toggle('active', i===j));
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
 function val(id) { return (document.getElementById(id)?.value||'').trim(); }
 function set(id, v) { const el = document.getElementById(id); if(el) el.value = v||''; }
 
@@ -216,7 +214,6 @@ function nuevoVehiculo() {
   document.getElementById('patente').focus();
 }
 
-// ─── Buscar vehículo ───────────────────────────────────────────────────────
 async function buscarVehiculo() {
   const p = document.getElementById('inputBuscar').value.trim().toUpperCase();
   if (!p) return;
@@ -227,7 +224,6 @@ async function buscarVehiculo() {
 
   setFormData(data);
 
-  // Cargar fotos existentes
   for (const sec of FOTO_SECTIONS) {
     for (const ext of ['jpg','jpeg','png','webp','heic']) {
       const path = `${p}/${sec}.${ext}`;
@@ -244,7 +240,6 @@ async function buscarVehiculo() {
   toast(`Vehículo ${p} cargado ✓`);
 }
 
-// ─── Foto ──────────────────────────────────────────────────────────────────
 function onFoto(tabId, input) {
   const file = input.files[0];
   if (!file) return;
@@ -254,7 +249,6 @@ function onFoto(tabId, input) {
   img.classList.add('show');
 }
 
-// ─── Guardar en Supabase ───────────────────────────────────────────────────
 async function guardarVehiculo() {
   const patente = val('patente').toUpperCase();
   if (!patente) { toast('Ingresa la patente'); switchTab(0); return; }
@@ -264,7 +258,6 @@ async function guardarVehiculo() {
   btn.innerHTML = '<span class="spinner"></span>Guardando...';
 
   try {
-    // Subir fotos
     for (const sec of FOTO_SECTIONS) {
       const file = selectedFiles[sec];
       if (!file) continue;
@@ -273,7 +266,6 @@ async function guardarVehiculo() {
       if (error) toast(`Error foto ${sec}: ${error.message}`);
     }
 
-    // Guardar datos
     const row = getFormData();
     row.patente = patente;
     row.updated_at = new Date().toISOString();
@@ -290,7 +282,6 @@ async function guardarVehiculo() {
   }
 }
 
-// ─── Grabar Tag NFC ────────────────────────────────────────────────────────
 let nfcController = null;
 
 async function grabarTag() {
@@ -322,7 +313,6 @@ function cancelarNfc() {
   document.getElementById('banner').classList.remove('show');
 }
 
-// ─── Toast ─────────────────────────────────────────────────────────────────
 let toastTimer;
 function toast(msg) {
   const el = document.getElementById('toast');

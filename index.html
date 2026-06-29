@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Documentos Vehículo</title>
+<title>Documentos Vehículo — RVC</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --primary: #1565C0;
-    --bg: #F0F2F5;
+    --primary: #CC2028;
+    --primary-dark: #A51820;
+    --bg: #F5F5F5;
     --card: #fff;
     --text: #212121;
     --muted: #757575;
@@ -17,13 +18,13 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* Header */
-  .header { background: linear-gradient(135deg, #1565C0, #0D47A1); color: #fff; padding: 28px 20px 32px; text-align: center; }
-  .patente-display { font-size: 36px; font-weight: 800; letter-spacing: 4px; font-family: monospace; background: rgba(255,255,255,.15); display: inline-block; padding: 8px 24px; border-radius: 10px; margin-bottom: 12px; }
-  .vehiculo-nombre { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-  .vehiculo-detalle { font-size: 14px; opacity: .8; }
+  .header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 24px 20px 28px; text-align: center; }
+  .header-logo { height: 54px; margin-bottom: 14px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+  .patente-display { font-size: 34px; font-weight: 800; letter-spacing: 4px; font-family: monospace; background: rgba(255,255,255,.18); display: inline-block; padding: 8px 24px; border-radius: 10px; margin-bottom: 10px; }
+  .vehiculo-nombre { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+  .vehiculo-detalle { font-size: 13px; opacity: .85; }
+  .vin-text { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 6px; }
 
-  /* Cards */
   .body { padding: 16px; max-width: 600px; margin: 0 auto; }
   .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -38,17 +39,14 @@
   .doc-row span:first-child { color: var(--muted); }
   .doc-row span:last-child { font-weight: 500; text-align: right; }
 
-  /* Imagen */
   .doc-img { width: 100%; border-radius: 10px; margin-top: 14px; cursor: pointer; border: 1px solid #EEE; max-height: 200px; object-fit: cover; transition: opacity .2s; }
   .doc-img:active { opacity: .8; }
 
-  /* Lightbox */
   .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
   .lightbox.show { display: flex; }
   .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain; }
   .lightbox-close { position: absolute; top: 16px; right: 16px; color: #fff; font-size: 32px; cursor: pointer; line-height: 1; }
 
-  /* Loading / error */
   .state { text-align: center; padding: 60px 20px; }
   .state .icon { font-size: 48px; margin-bottom: 12px; }
   .state h2 { font-size: 20px; margin-bottom: 8px; }
@@ -57,7 +55,6 @@
   .big-spinner { width: 40px; height: 40px; border: 4px solid #DDD; border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .vin-text { font-size: 11px; color: var(--muted); margin-top: 4px; }
   .footer { text-align: center; padding: 20px; font-size: 12px; color: #BBB; }
 </style>
 </head>
@@ -70,7 +67,6 @@
   </div>
 </div>
 
-<!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <span class="lightbox-close">✕</span>
   <img id="lightboxImg" src="" alt="">
@@ -82,7 +78,6 @@ const SUPABASE_KEY = 'sb_publishable_IEedxSduro5Go1L6mHWLXg_dNxLGrWP';
 const BUCKET = 'vehicledocs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Lee patente de la URL (?p=AB1234)
 const patente = new URLSearchParams(location.search).get('p')?.toUpperCase();
 
 async function main() {
@@ -102,9 +97,8 @@ async function main() {
 
   document.title = `${patente} — ${data.marca} ${data.modelo}`;
 
-  // Obtener URLs de fotos
   const fotos = {};
-  for (const sec of ['permiso', 'soap', 'revision', 'gases']) {
+  for (const sec of ['permiso', 'soap', 'rt', 'rg']) {
     for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'heic']) {
       const path = `${patente}/${sec}.${ext}`;
       const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
@@ -120,11 +114,11 @@ function getStatus(venc) {
   if (!venc || !venc.includes('/')) return null;
   const [m, y] = venc.split('/');
   if (!m || !y || isNaN(m) || isNaN(y)) return null;
-  const exp = new Date(parseInt(y), parseInt(m), 0); // último día del mes
+  const exp = new Date(parseInt(y), parseInt(m), 0);
   const diff = Math.floor((exp - new Date()) / 86400000);
-  if (diff < 0)  return { label: 'VENCIDO',            cls: 'badge-vencido' };
-  if (diff <= 30) return { label: `Vence en ${diff}d`,  cls: 'badge-proximo' };
-  return           { label: `Vigente · ${venc}`,        cls: 'badge-vigente' };
+  if (diff < 0)   return { label: 'VENCIDO',           cls: 'badge-vencido' };
+  if (diff <= 30) return { label: `Vence en ${diff}d`, cls: 'badge-proximo' };
+  return            { label: `Vigente · ${venc}`,      cls: 'badge-vigente' };
 }
 
 function badge(venc) {
@@ -144,6 +138,7 @@ function imgCard(sec, fotos) {
 function renderPage(d, fotos) {
   return `
     <div class="header">
+      <img class="header-logo" src="rvc.jpg" alt="RVC">
       <div class="patente-display">${d.patente}</div>
       <div class="vehiculo-nombre">${[d.marca, d.modelo].filter(Boolean).join(' ') || 'Vehículo'}</div>
       <div class="vehiculo-detalle">${[d.anio, d.color].filter(Boolean).join(' · ')}</div>
@@ -182,7 +177,7 @@ function renderPage(d, fotos) {
         ${docRow('Número', d.rt_numero)}
         ${docRow('Planta', d.rt_planta)}
         ${docRow('Vencimiento', d.rt_venc)}
-        ${imgCard('revision', fotos)}
+        ${imgCard('rt', fotos)}
       </div>
 
       <div class="card">
@@ -194,10 +189,10 @@ function renderPage(d, fotos) {
         ${docRow('Planta', d.rg_planta)}
         ${docRow('Resultado', d.rg_resultado)}
         ${docRow('Vencimiento', d.rg_venc)}
-        ${imgCard('gases', fotos)}
+        ${imgCard('rg', fotos)}
       </div>
 
-      <div class="footer">Docs Vehículo NFC · RVC</div>
+      <div class="footer">RVC · Documentos de Flota</div>
     </div>`;
 }
 
