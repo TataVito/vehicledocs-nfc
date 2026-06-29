@@ -136,13 +136,13 @@ const BUCKET = 'vehicledocs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── Secciones con fotos ─────────────────────────────────────────────────────
-const FOTO_SECTIONS = ['permiso', 'soap', 'revision'];
-const FOTO_LABELS = { permiso: 'Permiso de Circulación', soap: 'SOAP', revision: 'Revisión Técnica' };
+const FOTO_SECTIONS = ['permiso', 'soap', 'revision', 'gases'];
+const FOTO_LABELS = { permiso: 'Permiso de Circulación', soap: 'SOAP', revision: 'Revisión Técnica', gases: 'Revisión de Gases' };
 
 // Almacena los File objects seleccionados antes de subir
-const selectedFiles = { permiso: null, soap: null, revision: null };
+const selectedFiles = { permiso: null, soap: null, revision: null, gases: null };
 // URLs públicas de fotos subidas (para mostrar en formulario)
-const uploadedUrls = { permiso: null, soap: null, revision: null };
+const uploadedUrls = { permiso: null, soap: null, revision: null, gases: null };
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
 const TABS = [
@@ -186,6 +186,18 @@ const TABS = [
       { id: 'rtVenc',   label: 'Vencimiento (MM/AAAA)',    type: 'text', maxlen: 7 }
     ],
     foto: true
+  },
+  {
+    id: 'gases', label: 'Rev. Gases', icon: '💨',
+    fields: [
+      { id: 'rgNumero',    label: 'Número de revisión',    type: 'text' },
+      { id: 'rgPlanta',    label: 'Planta revisora',       type: 'text' },
+      { row: [
+        { id: 'rgResultado', label: 'Resultado',           type: 'text' },
+        { id: 'rgVenc',      label: 'Vencimiento (MM/AAAA)', type: 'text', maxlen: 7 }
+      ]}
+    ],
+    foto: true
   }
 ];
 
@@ -217,7 +229,7 @@ const pageContainer = document.getElementById('pageContainer');
 
 TABS.forEach((tab, i) => {
   tabBar.innerHTML += `<div class="tab${i===0?' active':''}" onclick="switchTab(${i})">${tab.icon} ${tab.label}</div>`;
-  const title = { vehiculo:'Datos del Vehículo', permiso:'Permiso de Circulación', soap:'Seguro Obligatorio (SOAP)', revision:'Revisión Técnica' }[tab.id];
+  const title = { vehiculo:'Datos del Vehículo', permiso:'Permiso de Circulación', soap:'Seguro Obligatorio (SOAP)', revision:'Revisión Técnica', gases:'Revisión de Gases' }[tab.id];
   pageContainer.innerHTML += `
     <div class="page${i===0?' active':''}" id="page-${i}">
       <div class="card">
@@ -283,17 +295,19 @@ function toJson() {
     v:  { p: val('patente'), m: val('marca'), mo: val('modelo'), a: val('anio'), c: val('color'), vin: val('vin') },
     pc: { n: val('pNumero'), mu: val('pMunicipio'), v: val('pVenc') },
     s:  { c: val('sCompania'), p: val('sPoliza'), v: val('sVenc') },
-    rt: { n: val('rtNumero'), pl: val('rtPlanta'), v: val('rtVenc') }
+    rt: { n: val('rtNumero'), pl: val('rtPlanta'), v: val('rtVenc') },
+    rg: { n: val('rgNumero'), pl: val('rgPlanta'), r: val('rgResultado'), v: val('rgVenc') }
   });
 }
 
 function fromJson(json) {
   const d = JSON.parse(json);
-  const v = d.v||{}, pc = d.pc||{}, s = d.s||{}, rt = d.rt||{};
+  const v = d.v||{}, pc = d.pc||{}, s = d.s||{}, rt = d.rt||{}, rg = d.rg||{};
   return { patente:v.p, marca:v.m, modelo:v.mo, anio:v.a, color:v.c, vin:v.vin,
            pNumero:pc.n, pMunicipio:pc.mu, pVenc:pc.v,
            sCompania:s.c, sPoliza:s.p, sVenc:s.v,
-           rtNumero:rt.n, rtPlanta:rt.pl, rtVenc:rt.v };
+           rtNumero:rt.n, rtPlanta:rt.pl, rtVenc:rt.v,
+           rgNumero:rg.n, rgPlanta:rg.pl, rgResultado:rg.r, rgVenc:rg.v };
 }
 
 function toReadable(d) {
@@ -307,7 +321,9 @@ function toReadable(d) {
     '═══ SOAP ══════════════════════',
     line('Compañía',d.sCompania), line('Póliza',d.sPoliza), line('Vence',d.sVenc), '',
     '═══ REVISIÓN TÉCNICA ══════════',
-    line('Número',d.rtNumero), line('Planta',d.rtPlanta), line('Vence',d.rtVenc),
+    line('Número',d.rtNumero), line('Planta',d.rtPlanta), line('Vence',d.rtVenc), '',
+    '═══ REVISIÓN DE GASES ═════════',
+    line('Número',d.rgNumero), line('Planta',d.rgPlanta), line('Resultado',d.rgResultado), line('Vence',d.rgVenc),
   ].join('\n');
 }
 
