@@ -23,7 +23,6 @@
   .patente-display { font-size: 34px; font-weight: 800; letter-spacing: 4px; font-family: monospace; background: rgba(255,255,255,.18); display: inline-block; padding: 8px 24px; border-radius: 10px; margin-bottom: 10px; }
   .vehiculo-nombre { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
   .vehiculo-detalle { font-size: 13px; opacity: .85; }
-  .vin-text { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 6px; }
 
   .body { padding: 16px; max-width: 600px; margin: 0 auto; }
   .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
@@ -142,7 +141,6 @@ function renderPage(d, fotos) {
       <div class="patente-display">${d.patente}</div>
       <div class="vehiculo-nombre">${[d.marca, d.modelo].filter(Boolean).join(' ') || 'Vehículo'}</div>
       <div class="vehiculo-detalle">${[d.anio, d.color].filter(Boolean).join(' · ')}</div>
-      ${d.vin ? `<div class="vin-text">VIN: ${d.vin}</div>` : ''}
     </div>
 
     <div class="body">
@@ -152,7 +150,6 @@ function renderPage(d, fotos) {
           <div class="card-title">📄 Permiso de Circulación</div>
           ${badge(d.permiso_venc)}
         </div>
-        ${docRow('Número', d.permiso_numero)}
         ${docRow('Municipalidad', d.permiso_municipio)}
         ${docRow('Vencimiento', d.permiso_venc)}
         ${imgCard('permiso', fotos)}
@@ -164,7 +161,6 @@ function renderPage(d, fotos) {
           ${badge(d.soap_venc)}
         </div>
         ${docRow('Compañía', d.soap_compania)}
-        ${docRow('Póliza', d.soap_poliza)}
         ${docRow('Vencimiento', d.soap_venc)}
         ${imgCard('soap', fotos)}
       </div>
@@ -174,7 +170,6 @@ function renderPage(d, fotos) {
           <div class="card-title">🔧 Revisión Técnica</div>
           ${badge(d.rt_venc)}
         </div>
-        ${docRow('Número', d.rt_numero)}
         ${docRow('Planta', d.rt_planta)}
         ${docRow('Vencimiento', d.rt_venc)}
         ${imgCard('rt', fotos)}
@@ -185,9 +180,7 @@ function renderPage(d, fotos) {
           <div class="card-title">💨 Revisión de Gases</div>
           ${badge(d.rg_venc)}
         </div>
-        ${docRow('Número', d.rg_numero)}
         ${docRow('Planta', d.rg_planta)}
-        ${docRow('Resultado', d.rg_resultado)}
         ${docRow('Vencimiento', d.rg_venc)}
         ${imgCard('rg', fotos)}
       </div>

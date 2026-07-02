@@ -36,11 +36,11 @@ SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 BUCKET = 'vehicledocs'
 
 COLUMNAS = [
-    'patente', 'marca', 'modelo', 'anio', 'color', 'vin',
-    'permiso_numero', 'permiso_municipio', 'permiso_venc',
-    'soap_compania', 'soap_poliza', 'soap_venc',
-    'rt_numero', 'rt_planta', 'rt_venc',
-    'rg_numero', 'rg_planta', 'rg_resultado', 'rg_venc',
+    'patente', 'marca', 'modelo', 'anio', 'color',
+    'permiso_municipio', 'permiso_venc',
+    'soap_compania', 'soap_venc',
+    'rt_planta', 'rt_venc',
+    'rg_planta', 'rg_venc',
 ]
 
 SECCIONES_FOTO = ['permiso', 'soap', 'rt', 'rg']
@@ -70,11 +70,11 @@ def crear_template():
         ws.column_dimensions[cell.column_letter].width = max(15, len(nombre) + 2)
 
     # Fila de ejemplo
-    ejemplo = ['AB1234', 'Toyota', 'Hilux', '2022', 'Blanco', '9TMATF1J5MT123456',
-               'PC-001', 'Municipalidad Santiago', '03/2026',
-               'Mapfre', 'POL-789456', '06/2026',
-               'RT-123', 'Planta Norte', '08/2026',
-               'RG-456', 'Centro Sur', 'Aprobado', '08/2026']
+    ejemplo = ['AB1234', 'Toyota', 'Hilux', '2022', 'Blanco',
+               'Municipalidad Santiago', '03/2026',
+               'Mapfre', '06/2026',
+               'Planta Norte', '08/2026',
+               'Centro Sur', '08/2026']
     for col, valor in enumerate(ejemplo, 1):
         ws.cell(row=2, column=col, value=valor)
 

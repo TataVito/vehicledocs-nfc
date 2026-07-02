@@ -166,14 +166,10 @@ class MainActivity : AppCompatActivity() {
             modelo = et(fVeh, R.id.etModelo),
             anio = et(fVeh, R.id.etAnio),
             color = et(fVeh, R.id.etColor),
-            vin = et(fVeh, R.id.etVin),
-            permisoNumero = et(fPer, R.id.etPermisoNumero),
             permisoMunicipio = et(fPer, R.id.etPermisoMunicipio),
             permisoVenc = et(fPer, R.id.etPermisoVenc),
             soapCompania = et(fSoap, R.id.etSoapCompania),
-            soapPoliza = et(fSoap, R.id.etSoapPoliza),
             soapVenc = et(fSoap, R.id.etSoapVenc),
-            rtNumero = et(fRt, R.id.etRtNumero),
             rtPlanta = et(fRt, R.id.etRtPlanta),
             rtVenc = et(fRt, R.id.etRtVenc)
         )
@@ -247,14 +243,10 @@ class MainActivity : AppCompatActivity() {
         set(fVeh, R.id.etModelo, data.modelo)
         set(fVeh, R.id.etAnio, data.anio)
         set(fVeh, R.id.etColor, data.color)
-        set(fVeh, R.id.etVin, data.vin)
-        set(fPer, R.id.etPermisoNumero, data.permisoNumero)
         set(fPer, R.id.etPermisoMunicipio, data.permisoMunicipio)
         set(fPer, R.id.etPermisoVenc, data.permisoVenc)
         set(fSoap, R.id.etSoapCompania, data.soapCompania)
-        set(fSoap, R.id.etSoapPoliza, data.soapPoliza)
         set(fSoap, R.id.etSoapVenc, data.soapVenc)
-        set(fRt, R.id.etRtNumero, data.rtNumero)
         set(fRt, R.id.etRtPlanta, data.rtPlanta)
         set(fRt, R.id.etRtVenc, data.rtVenc)
     }

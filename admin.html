@@ -119,29 +119,23 @@ const TABS = [
     { id:'marca',    label:'Marca',                  type:'text' },
     { id:'modelo',   label:'Modelo',                 type:'text' },
     { row:[{id:'anio',  label:'Año',   type:'number', maxlen:4},
-           {id:'color', label:'Color', type:'text'}]},
-    { id:'vin',      label:'VIN / Chasis', type:'text', upper:true, maxlen:17 }
+           {id:'color', label:'Color', type:'text'}]}
   ]},
   { id:'permiso', label:'Permiso', icon:'📄', foto:true, fields:[
-    { id:'permiso_numero',    label:'Número de permiso',    type:'text' },
     { id:'permiso_municipio', label:'Municipalidad',        type:'text' },
     { id:'permiso_venc',      label:'Vencimiento (MM/AAAA)',type:'text', maxlen:7 }
   ]},
   { id:'soap', label:'SOAP', icon:'🛡️', foto:true, fields:[
     { id:'soap_compania', label:'Compañía aseguradora',   type:'text' },
-    { id:'soap_poliza',   label:'Número de póliza',       type:'text' },
     { id:'soap_venc',     label:'Vencimiento (MM/AAAA)',  type:'text', maxlen:7 }
   ]},
   { id:'rt', label:'Rev. Técnica', icon:'🔧', foto:true, fields:[
-    { id:'rt_numero', label:'Número de revisión',      type:'text' },
     { id:'rt_planta', label:'Planta revisora',         type:'text' },
     { id:'rt_venc',   label:'Vencimiento (MM/AAAA)',   type:'text', maxlen:7 }
   ]},
   { id:'rg', label:'Rev. Gases', icon:'💨', foto:true, fields:[
-    { id:'rg_numero',    label:'Número de revisión',    type:'text' },
     { id:'rg_planta',    label:'Planta revisora',       type:'text' },
-    { row:[{id:'rg_resultado', label:'Resultado',         type:'text'},
-           {id:'rg_venc',      label:'Vencimiento (MM/AAAA)', type:'text', maxlen:7}]}
+    { id:'rg_venc',      label:'Vencimiento (MM/AAAA)', type:'text', maxlen:7 }
   ]}
 ];
 

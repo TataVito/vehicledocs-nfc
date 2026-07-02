@@ -7,19 +7,13 @@ CREATE TABLE IF NOT EXISTS public.vehiculos (
   modelo          text    DEFAULT '',
   anio            text    DEFAULT '',
   color           text    DEFAULT '',
-  vin             text    DEFAULT '',
-  permiso_numero     text DEFAULT '',
   permiso_municipio  text DEFAULT '',
   permiso_venc       text DEFAULT '',
   soap_compania   text    DEFAULT '',
-  soap_poliza     text    DEFAULT '',
   soap_venc       text    DEFAULT '',
-  rt_numero       text    DEFAULT '',
   rt_planta       text    DEFAULT '',
   rt_venc         text    DEFAULT '',
-  rg_numero       text    DEFAULT '',
   rg_planta       text    DEFAULT '',
-  rg_resultado    text    DEFAULT '',
   rg_venc         text    DEFAULT '',
   created_at      timestamptz DEFAULT now(),
   updated_at      timestamptz DEFAULT now()
@@ -31,3 +25,11 @@ CREATE POLICY "Lectura pública"   ON public.vehiculos FOR SELECT USING (true);
 CREATE POLICY "Insertar anon"     ON public.vehiculos FOR INSERT WITH CHECK (true);
 CREATE POLICY "Actualizar anon"   ON public.vehiculos FOR UPDATE USING (true);
 CREATE POLICY "Eliminar anon"     ON public.vehiculos FOR DELETE USING (true);
+
+-- Si la tabla ya existía con estas columnas, ejecutar para eliminarlas:
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS vin;
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS permiso_numero;
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS soap_poliza;
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rt_numero;
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rg_numero;
+-- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rg_resultado;
