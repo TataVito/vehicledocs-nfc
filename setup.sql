@@ -25,11 +25,3 @@ CREATE POLICY "Lectura pública"   ON public.vehiculos FOR SELECT USING (true);
 CREATE POLICY "Insertar anon"     ON public.vehiculos FOR INSERT WITH CHECK (true);
 CREATE POLICY "Actualizar anon"   ON public.vehiculos FOR UPDATE USING (true);
 CREATE POLICY "Eliminar anon"     ON public.vehiculos FOR DELETE USING (true);
-
--- Si la tabla ya existía con estas columnas, ejecutar para eliminarlas:
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS vin;
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS permiso_numero;
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS soap_poliza;
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rt_numero;
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rg_numero;
--- ALTER TABLE public.vehiculos DROP COLUMN IF EXISTS rg_resultado;
